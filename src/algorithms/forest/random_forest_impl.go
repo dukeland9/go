@@ -150,7 +150,7 @@ func splitRange(samples []int, values []float64, threshold float64) ([]int, []in
 	return samples[:begin], samples[begin:]
 }
 
-func recursiveSplit(depth int, features [][]float64, labels []int, args *RandomForestTrainArgs, selectedFeatures []int, selectedSamples []int) *rfNode {
+func recursiveSplit(depth int, features [][]float64, labels []int, args *TrainArgs, selectedFeatures []int, selectedSamples []int) *rfNode {
 	if len(selectedSamples) == 0 {
 		log.Fatalln("Selected samples cannot be empty!")
 	}
@@ -186,15 +186,15 @@ func recursiveSplit(depth int, features [][]float64, labels []int, args *RandomF
 	return nil
 }
 
-func trainTree(tree_id int, features [][]float64, labels []int, args *RandomForestTrainArgs, tree *rfTree, semaphore chan int, tasks *sync.WaitGroup) {
-	log.Printf("Training tree #%d\n", tree_id)
+func trainTree(treeId int, features [][]float64, labels []int, args *TrainArgs, tree *rfTree, semaphore chan int, tasks *sync.WaitGroup) {
+	log.Printf("Training tree #%d\n", treeId)
 	startTime := time.Now()
 	sampleSize := len(labels)
 	featureDimension := len(features)
 	selectedSamples := sampleWithReplacement(sampleSize, min(sampleSize, args.MaxRecordsPerTree))
 	selectedFeatures := sampleWithoutReplacement(featureDimension, min(featureDimension, args.MaxFeaturesPerTree))
 	tree.root = recursiveSplit(0, features, labels, args, selectedFeatures, selectedSamples)
-	log.Printf("Done training tree #%d, took %.4f seconds\n", tree_id, time.Now().Sub(startTime).Seconds())
+	log.Printf("Done training tree #%d, took %.4f seconds\n", treeId, time.Now().Sub(startTime).Seconds())
 
 	<-semaphore
 	tasks.Done()

@@ -11,7 +11,7 @@ import (
 	"algorithms/forest"
 )
 
-var args forest.RandomForestTrainArgs
+var args forest.TrainArgs
 var trainImagePath, trainLabelPath, testImagePath, testLabelPath string
 
 func init() {

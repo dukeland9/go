@@ -36,38 +36,14 @@ func (this *RandomForest) Classify(feature []float64) (label int, probability fl
 	return
 }
 
-type RandomForestTrainArgs struct {
-	NumTrees           int
-	MaxTreeDepth       int
-	MaxRecordsPerTree  int
-	MaxFeaturesPerTree int
-	MinSamplesPerNode  int
-	Parallel           int
-}
-
 // Create a random forest by feeding the training data.
-func TrainRandomForest(features [][]float64, labels []int, args *RandomForestTrainArgs) (*RandomForest, error) {
-	if args.NumTrees <= 0 || args.MaxTreeDepth <= 0 || args.MaxRecordsPerTree <= 0 || args.MaxFeaturesPerTree <= 0 || args.MinSamplesPerNode <= 0 || args.Parallel <= 0 {
-		return nil, errors.New(fmt.Sprintf("Invalid train args: %v", *args))
+func TrainRandomForest(features [][]float64, labels []int, args *TrainArgs) (*RandomForest, error) {
+	if err := sanityChecks(features, labels, args); err != nil {
+		return nil, err
 	}
+
 	sampleSize := len(features)
-	if sampleSize == 0 {
-		return nil, errors.New("No training sample!")
-	}
-	if len(labels) != sampleSize {
-		return nil, errors.New(fmt.Sprintf("Label size does not match sample size: labels=%d, samples=%d", len(labels), sampleSize))
-	}
-
 	featureDimension := len(features[0])
-	if featureDimension == 0 {
-		return nil, errors.New("Feature dimension is zero!")
-	}
-	for _, v := range features {
-		if len(v) != featureDimension {
-			return nil, errors.New("Feature dimension mismatch!")
-		}
-	}
-
 	featureSampleMatrix := make([][]float64, featureDimension)
 	for i := range featureSampleMatrix {
 		featureSampleMatrix[i] = make([]float64, sampleSize)
