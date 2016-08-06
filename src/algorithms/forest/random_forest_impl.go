@@ -6,6 +6,7 @@ import (
 	"math"
 	"math/rand"
 	"sort"
+	"sync"
 	"time"
 )
 
@@ -185,7 +186,7 @@ func recursiveSplit(depth int, features [][]float64, labels []int, args *RandomF
 	return nil
 }
 
-func trainTree(tree_id int, features [][]float64, labels []int, args *RandomForestTrainArgs, tree *rfTree, semaphore chan int, done chan int) {
+func trainTree(tree_id int, features [][]float64, labels []int, args *RandomForestTrainArgs, tree *rfTree, semaphore chan int, tasks *sync.WaitGroup) {
 	log.Printf("Training tree #%d\n", tree_id)
 	startTime := time.Now()
 	sampleSize := len(labels)
@@ -196,7 +197,7 @@ func trainTree(tree_id int, features [][]float64, labels []int, args *RandomFore
 	log.Printf("Done training tree #%d, took %.4f seconds\n", tree_id, time.Now().Sub(startTime).Seconds())
 
 	<-semaphore
-	done <- 1
+	tasks.Done()
 }
 
 func classifyByTree(tree *rfTree, feature []float64) *rfNode {

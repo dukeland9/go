@@ -4,6 +4,7 @@ package forest
 import (
 	"errors"
 	"fmt"
+	"sync"
 )
 
 // The RandomForest class and its methods:
@@ -81,13 +82,12 @@ func TrainRandomForest(features [][]float64, labels []int, args *RandomForestTra
 	result.featureDimension = featureDimension
 
 	semaphore := make(chan int, args.Parallel)
-	done := make(chan int, args.NumTrees)
+	var tasks sync.WaitGroup
 	for i := 0; i < args.NumTrees; i++ {
 		semaphore <- 1
-		go trainTree(i, featureSampleMatrix, labels, args, &result.trees[i], semaphore, done)
+		tasks.Add(1)
+		go trainTree(i, featureSampleMatrix, labels, args, &result.trees[i], semaphore, &tasks)
 	}
-	for i := 0; i < args.NumTrees; i++ {
-		<-done
-	}
+	tasks.Wait()
 	return result, nil
 }
